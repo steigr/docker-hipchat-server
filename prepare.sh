@@ -24,6 +24,7 @@ apt purge -y acpid irqbalance crda python-xapian wireless-regdb
 apt-get autoremove -y
 apt install -y linux-libc-dev libc-dev-bin libjpeg-dev
 
+dpkg-divert --remove --rename /hipchat-scm/chef-repo/cookbooks/hipchat_server_cleanup/recipes/kernel_tuning.rb
 echo "# cleared for docker" > /hipchat-scm/chef-repo/cookbooks/hipchat_server_cleanup/recipes/kernel_tuning.rb
 
 sed -ri 's/^session\s+required\s+pam_loginuid.so$/session optional pam_loginuid.so/' /etc/pam.d/sshd
