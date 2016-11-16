@@ -1,0 +1,46 @@
+[Unit]
+Description=Atlassian Hipchat Server
+After=network-online.target docker.socket
+Requires=docker.socket
+
+[Install]
+WantedBy=multi-user.target
+
+[Service]
+Restart=always
+RestartSec=10s
+
+Environment=TRACE=1
+
+Environment=HIPCHAT_SERVER_NAME=%p
+Environment=HIPCHAT_SERVER_HOSTNAME=%p.example.com
+Environment=HIPCHAT_SERVER_NETWORK=bridge
+Environment=HIPCHAT_SERVER_IMAGE=hipchat-server
+Environment=HIPCHAT_SERVER_DATA=/var/lib/hipchat
+
+EnvironmentFile=-/etc/default/hipchat-server
+
+ExecStartPre=-/usr/bin/docker stop ${HIPCHAT_SERVER_NAME}
+ExecStartPre=-/usr/bin/docker rm ${HIPCHAT_SERVER_NAME}
+
+ExecStart=/bin/sh -c '/usr/bin/docker run \
+  --rm --privileged \
+  --volume=/lib/modules:/lib/modules:ro \
+  --volume=${HIPCHAT_SERVER_DATA}/chat_history:/chat_history \
+  --volume=${HIPCHAT_SERVER_DATA}/file_store:/file_store \
+  --volume=${HIPCHAT_SERVER_DATA}/mysql:/var/lib/mysql \
+  --volume=${HIPCHAT_SERVER_DATA}/hipchat:/hipchat \
+  --volume=${HIPCHAT_SERVER_DATA}/hipchat-scm:/hipchat-scm \
+  --name=${HIPCHAT_SERVER_NAME} \
+  --hostname=${HIPCHAT_SERVER_HOSTNAME} \
+  --network=${HIPCHAT_SERVER_NETWORK} \
+  --env-file=/etc/default/hipchat-server \
+  --env=HIPCHAT_SERVER_HOSTNAME= \
+  --env=HIPCHAT_SERVER_NAME= \
+  --env=HIPCHAT_SERVER_NETWORK= \
+  --env=HIPCHAT_SERVER_IMAGE= \
+  --env=HIPCHAT_SERVER_DATA= \
+  --env=TRACE \
+  ${DOCKER_ARGS} ${HIPCHAT_SERVER_IMAGE}'
+
+ExecStop=/usr/bin/docker stop ${HIPCHAT_SERVER_NAME}
